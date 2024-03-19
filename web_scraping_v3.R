@@ -44,7 +44,7 @@ get_titles_from_url <- function(df) {
   for (i in 1:10){
     # Selecting the url of the row
     url <- urls[i,]
-    # Using webscrapping to gather the title of the urls webpage
+    # Using webscraping to gather the title of the urls webpage
     title <- read_html(url) %>%
       html_nodes('head') %>%
       html_nodes('title') %>%
@@ -58,7 +58,7 @@ get_titles_from_url <- function(df) {
   title_vector <- unlist(titles)
   # Creating a new column of the df that contains webpage titles
   df$WEBPAGE_TITLES <- title_vector
-  # Returning the moified df
+  # Returning the modified df
   return(df)
 }
 
@@ -70,7 +70,7 @@ get_titles_from_url <- function(df) {
 # returns from the url. Finally, it will take the top 10 sources that do not
 # return NA as their url title.
 get_titles <- function(date) {
-  # Using the built-in function GetGDELT to grab the all of the information from
+  # Using the built-in function GetGDELT to grab all of the information from
   # the input date
   gdelt_totaldf <- GetGDELT(date)
   # Sorting the information by total number of mentions
