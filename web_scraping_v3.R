@@ -120,7 +120,7 @@ get_titles <- function(date) {
 }
 
 
-### Compilation an Execution ###
+### Compilation and Execution ###
 # Gathering the date from user input
 date <- readline(
   prompt = "Enter the date you wish to know about in yyyy-mm-dd format: "
