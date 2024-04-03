@@ -1,0 +1,179 @@
+---
+title: "Global Database of Events, Language, and Tone"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(GDELTtools)
+library(dplyr) 
+library(ggplot2) 
+library(leaflet) 
+library(rvest)
+library(stringr)
+library(tidyr)
+library(DT)
+library(shinydashboard)
+
+### Error-handling Function ###
+# Creating the error handling tryCatch function
+error_handling <- function(url) {
+  # The tryCatch function will catch errors and do something else with them
+  tryCatch(
+    {
+      # Grabbing the title from the webpage of the url
+      title <- read_html(url) %>%
+        html_nodes('head') %>%
+        html_nodes('title')
+      # If the url is successfully read, then return FALSE since later this
+      # will be returned to a variable called is_error
+      return(FALSE)
+      # Suppressing the warnings so they do not get shown to the console
+      suppressWarnings(get_titles_top10(date))
+    } ,
+    # If reading the html title throws an error or a warning, then return TRUE
+    error = function(cond) {
+      return(TRUE)
+    } ,
+    warning = function(cond) {
+      return(TRUE)
+    }
+  )
+}
+
+### Get Titles From URL Function ###
+# This function takes a dataframe as input. It will return a dataframe with
+# the titles of the urls as a column
+get_titles_from_url <- function(df) {
+  # Getting a list of the return_urls
+  urls <- data.frame(df$SOURCEURL)
+  # Creating an empty list to store the titles
+  titles <- list()
+  # Looping through each row of the df
+  for (i in 1:10){
+    # Selecting the url of the row
+    url <- urls[i,]
+    # Using webscrapping to gather the title of the urls webpage
+    title <- read_html(url) %>%
+      html_nodes('head') %>%
+      html_nodes('title') %>%
+      html_text()
+    # Finding the length of the titles list and appending the new value to the 
+    # list
+    len <- length(titles)
+    titles[[len+1]] <- title
+  }
+  # Converting the list of titles into a vector
+  title_vector <- unlist(titles)
+  # Creating a new column of the df that contains webpage titles
+  df$WEBPAGE_TITLES <- title_vector
+  # Returning the moified df
+  return(df)
+}
+
+### MAIN ### 
+### Get Titles Function ###
+# This function takes in a date as input, then grabs the top 25 mentioned
+# sources from that date. Then, it uses the error_handling function to test the 
+# returns from the url. Finally, it will take the top 10 sources that do not
+# return NA as their url title.
+get_titles <- function(date) {
+  # Using the built-in function GetGDELT to grab the all of the information from
+  # the input date
+  gdelt_totaldf <- GetGDELT(date)
+  # Sorting the information by total number of mentions
+  gdelt_sorted_mentions <- gdelt_totaldf[order(-gdelt_totaldf$NumMentions),]
+  # Taking only the top-25 rows of information
+  gdelt_sorted_mentions_top25 <- gdelt_sorted_mentions[1:25,]
+  # Grabbing the urls of the top-25
+  urls_sorted_mentions <- gdelt_sorted_mentions_top25$SOURCEURL
+  # Creating an empty list as a place to store our urls
+  return_urls <- list()
+  # Looping through the list of the top-50 urls in to util
+  # function
+  for (i in 1:25){
+    # Grabbing a specific url from the list using index notation
+    url <- urls_sorted_mentions[i]
+    # Using the error_handling function (which returns TRUE or FALSE) to test
+    # if the url is 'good' or 'bad'
+    is_error <- error_handling(url)
+    # If there is no error with the url, this block will run
+    if (is_error == FALSE){
+      # Grabbing the length of the return_urls list
+      len <- length(return_urls)
+      # Appending the url to the list
+      return_urls[[len+1]] <- urls_sorted_mentions[i]
+    }
+    # else, there must be some kind of error, so this block runs
+    else{
+      # Grabbing the length of the return_urls list
+      len <- length(return_urls)
+      # Appending NA to the list since the url returned an error
+      return_urls[[len+1]] <- NA
+    }
+  }
+  # Converting the list of urls into a vector so they are easier to work with
+  urls_vector <- unlist(return_urls)
+  # Appening the urls_vector to the existing df
+  gdelt_sorted_mentions_top25$RETURN_URLS <- urls_vector
+  # Removing the rows with NA in the return_urls column
+  gdelt_sorted_mentions_notNA <- gdelt_sorted_mentions_top25 %>%
+    drop_na(RETURN_URLS)
+  # Selecting the top-10 rows
+  gdelt_sorted_mentions_top10 <- gdelt_sorted_mentions_notNA[1:10,]
+  # Getting the titles of each of the urls in the df
+  gdelt_sorted_mentions_top10_titles <- get_titles_from_url(
+    gdelt_sorted_mentions_top10)
+  return(gdelt_sorted_mentions_top10_titles)
+}
+
+
+plot_map <- function(date) {
+  top_10_trending <- {get_titles(date)}
+  
+  # Creating a Leaflet map center around the world 
+  world_map <- leaflet() %>% 
+    addTiles() %>% 
+    setView(lng = 0, lat = 30, zoom = 2)  # Adjust the center and zoom level as needed 
+  
+  # Add circle markers for each point 
+  for(i in 1:nrow(top_10_trending)) { 
+    world_map <- addCircleMarkers(world_map, 
+                                  lng = top_10_trending$Actor2Geo_Long[i], 
+                                  lat = top_10_trending$Actor2Geo_Lat[i], 
+                                  color = "red", 
+                                  radius = 5, 
+                                  popup = top_10_trending$SOURCEURL[i]) 
+  } 
+  return(world_map)
+}
+```
+
+### Trending World Events 
+Select a date range for which you would like to see the top trending articles for world events.
+```{r eruptions, echo=FALSE}
+
+#date range input 
+ui <- fluidPage(
+      dateInput('date1', 'Select a Date:', 
+                     value = Sys.Date()-1, #initialize as yesterday
+                     max = Sys.Date(), #date cannot be in the future 
+                     format = "yyyy-mm-dd"),
+      textOutput('dateinput'),
+      tableOutput('articletitles'),
+      leafletOutput('toparticlemap')
+
+)
+
+server <- function(input, output) {
+  output$dateinput <- renderText({paste("Top 10 News Articles on", input$date1)})
+  output$articletitles <- renderTable({get_titles(input$date1)}) 
+  output$toparticlemap <- renderLeaflet({plot_map(input$date1)})
+}
+
+
+shinyApp(ui, server)
+```
+
