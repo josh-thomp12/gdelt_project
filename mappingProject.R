@@ -4,7 +4,7 @@ library(urltools)
 library(readxl)
 
 # Gather all mentions of an event.
-apr13 <- GetGDELT("2024-04-13")
+apr14 <- GetGDELT("2024-04-14")
 countryDomains <- read_excel("countryDomains.xlsx")
 
 apr13 %>% group_by(SOURCEURL, ActionGeo_Lat, ActionGeo_Long, EventRootCode) %>%
