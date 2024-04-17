@@ -10,34 +10,35 @@ library(GDELTtools)
 library(dplyr)
 library(urltools)
 library(readxl)
+library(tidyr)
 ```
 
 # Access dataset for one day
 
 ```{r}
-apr14 <- GetGDELT("2024-04-14")
-apr14
+apr16 <- GetGDELT("2024-04-16")
+apr16
 ```
-# Gather all mentions of an event, Find Average Tone, Pull URL domain
+# Gather all mentions of an event, Pull URL domains with respective tones
 
 ```{r}
-
-# group by name location, eventcode
-# how to sort by number of rows
-# show list of urls with differing tones
-
-apr14 %>% group_by(Actor1Name,Actor2Name, ActionGeo_Lat, ActionGeo_Long, EventCode) %>%
-  summarise(n(),mean(AvgTone)) -> df1 %>% arrange(n()) -> new
-  #mutate(domain = (domain(SOURCEURL))) 
-df1
+apr16 %>%
+  group_by(EventCode,Actor1Geo_Lat,Actor1Geo_Long,ActionGeo_Lat,ActionGeo_Long) %>%
+  summarize(count=n(), tone = list(AvgTone), URLs = list(SOURCEURL), .groups="drop") %>%
+  arrange(desc(count)) %>%
+  select(URLs,tone) %>%
+  slice(1) %>%
+  unnest(c(URLs,tone)) %>%
+  mutate(domain = (domain(URLs))) %>%
+  select(domain, tone) -> topStory
 ```
+
 
 # Sort these mentions by their country of origin.
 
 ```{r}
 countryDomains <- read_excel("countryDomains.xlsx")
-df1 %>% ungroup() %>%
-  select(`n()`, domain, `mean(AvgTone)`) %>% 
+topStory %>% 
   mutate(suffix = sub(".+\\.", ".", domain)) %>%
   left_join(countryDomains, by = c("suffix"="domain")) -> df2
 df2
@@ -46,19 +47,30 @@ df2
 # Removing NAs removes majority of rows
 
 ```{r}
-df2 %>% na.omit() -> df3
+df2 %>% na.omit() %>%
+  group_by(country) %>%
+  summarize(meanTone=mean(tone) , .groups="drop") %>%
+  arrange(meanTone) -> df3
 df3
 ```
 
-# Average tone for each country on that day
+# Map Average Tone by Country
 
-```{r}
-df3 %>% group_by(country) %>% summarise(mean(`mean(AvgTone)`))
-```
+```{r fig.width=10}
+library(sf)
+library(ggplot2)
+worldShapeFiles <- read_sf("TM_WORLD_BORDERS_SIMPL-0.3.shp")
+df3 %>%
+  mutate(country = replace(country, 1, "Iran (Islamic Republic of)")) %>%
+  mutate(country = replace(country, 2, "China")) %>%
+  mutate(country = replace(country, 4, "United States")) ->df4
 
-# Map Average Tone by Country?
+worldShapeFiles %>%
+  left_join(df4, by = c("NAME"="country")) -> df5
 
-```{r}
-# This average can be converted to a color and each country
-# colored according to its overall tone on that event.
+ggplot(df5) +
+  geom_sf(aes(fill=meanTone)) +
+  scale_fill_distiller(palette="Reds",direction=1, name="",na.value="gray") +
+  labs(title="Average Tone by Country")+
+  theme_void()
 ```
