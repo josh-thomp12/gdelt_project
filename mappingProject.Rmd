@@ -21,9 +21,14 @@ apr14
 # Gather all mentions of an event, Find Average Tone, Pull URL domain
 
 ```{r}
-apr14 %>% group_by(SOURCEURL, ActionGeo_Lat, ActionGeo_Long, EventRootCode) %>%
-  summarise(n(),mean(AvgTone)) %>%
-  mutate(domain = (domain(SOURCEURL))) -> df1
+
+# group by name location, eventcode
+# how to sort by number of rows
+# show list of urls with differing tones
+
+apr14 %>% group_by(Actor1Name,Actor2Name, ActionGeo_Lat, ActionGeo_Long, EventCode) %>%
+  summarise(n(),mean(AvgTone)) -> df1 %>% arrange(n()) -> new
+  #mutate(domain = (domain(SOURCEURL))) 
 df1
 ```
 
@@ -51,7 +56,7 @@ df3
 df3 %>% group_by(country) %>% summarise(mean(`mean(AvgTone)`))
 ```
 
-# Map Average Tone by Country
+# Map Average Tone by Country?
 
 ```{r}
 # This average can be converted to a color and each country
