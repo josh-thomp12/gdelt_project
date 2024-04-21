@@ -52,6 +52,8 @@ df2 %>% na.omit() -> URLlist
 URLlist
 ```
 
+# Calculate Average Tone by Country
+
 ```{r}
 URLlist %>%
   group_by(country) %>%
@@ -60,7 +62,7 @@ URLlist %>%
 df3
 ```
 
-# Map Average Tone by Country
+# Map Average Tone by Country, edited entries for Iran, China, US
 
 ```{r fig.width=10}
 library(sf)
