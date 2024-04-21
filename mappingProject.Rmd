@@ -30,7 +30,8 @@ apr16 %>%
   slice(1) %>%
   unnest(c(URLs,tone)) %>%
   mutate(domain = (domain(URLs))) %>%
-  select(domain, tone) -> topStory
+  select(URLs, domain, tone) -> topStory
+topStory
 ```
 
 
@@ -47,7 +48,12 @@ df2
 # Removing NAs removes majority of rows
 
 ```{r}
-df2 %>% na.omit() %>%
+df2 %>% na.omit() -> URLlist
+URLlist
+```
+
+```{r}
+URLlist %>%
   group_by(country) %>%
   summarize(meanTone=mean(tone) , .groups="drop") %>%
   arrange(meanTone) -> df3
