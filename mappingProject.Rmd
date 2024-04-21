@@ -30,7 +30,8 @@ apr16 %>%
   slice(1) %>%
   unnest(c(URLs,tone)) %>%
   mutate(domain = (domain(URLs))) %>%
-  select(domain, tone) -> topStory
+  select(URLs, domain, tone) -> topStory
+topStory
 ```
 
 
@@ -45,16 +46,25 @@ df2
 ```
 
 # Removing NAs removes majority of rows
+# This line shows all URLs to get some idea of what event is
 
 ```{r}
-df2 %>% na.omit() %>%
+df2 %>% na.omit() -> urlList
+urlList
+```
+
+Avg Tone by Country
+
+```{r}
+urlList %>% 
   group_by(country) %>%
   summarize(meanTone=mean(tone) , .groups="drop") %>%
   arrange(meanTone) -> df3
 df3
 ```
 
-# Map Average Tone by Country
+
+# Map Average Tone by Country, edits for Iran, China, US
 
 ```{r fig.width=10}
 library(sf)
