@@ -1,0 +1,25 @@
+---
+title: "GDELT Analysis Report"
+output: 
+  html_document:
+    toc: true
+---
+
+# Introduction
+
+This report analyzes the top 10 trending events from the GDELT dataset.
+
+```{r, results='asis'}
+# Load precomputed data
+sorted_data <- readRDS("precomputed_data.rds")
+
+# Display top 10 trending events
+knitr::kable(sorted_data)
+```
+
+```{r}
+# Embed the Leaflet map saved as an HTML file
+cat('<iframe src="world_map.html" width="100%" height="500"></iframe>')
+
+```
+
