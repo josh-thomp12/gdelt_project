@@ -1,0 +1,131 @@
+---
+title: "GDELT Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(GDELTtools)
+library(dplyr) 
+library(ggplot2) 
+library(leaflet)
+library(DT)
+library(rvest)
+library(stringr)
+library(tidyr)
+library(shinydashboard)
+
+GdeltDF <- readRDS('topTenByMention_WithTitles.rds')
+GdeltDF1 <- read.csv('GdeltData.csv')
+
+```
+
+Top Articles
+=====================================  
+Column {.sidebar}
+-----------------------------------------------------------------------
+### About 
+
+Navigating the news in today's world is overwhelming with endless articles and sources. This dashboard brings you the latest news from around the world in a straightforward and easily digestible format. Powered by data from the Global Database of Events, Language, and Tone (GDELT), we highlight thte top news stories making headlines each day. Our goal is to provide users with a quick and efficient way to stay informed about the most important events and developments happening globally.
+
+The Global Database of Events, Language, & Tone (GDELT) monitors the world's news media from nearly every corner of every country
+in print, broadcast, and web formats, in over 100 languages,
+every moment of every day.
+
+https://www.gdeltproject.org
+
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+
+###
+
+```{r}
+valueBox("Top 10 Articles for 04/24/2024", "Click the boxes below to read more", color = 'blue', width = 12)
+```
+
+###
+
+```{r}
+valueBox(GdeltDF[1,1], GdeltDF[1,2], color = 'light-blue', href = GdeltDF[1,3], width = 12)
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[2,1], GdeltDF[2,2], color = 'light-blue', href = GdeltDF[2,3], width = 12)
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[3,1], GdeltDF[3,2], color = 'light-blue', href = GdeltDF[3,3], width = 12)
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[4,1],  GdeltDF[4,2], color = 'light-blue', href = GdeltDF[4,3], width = 12)
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[5,1], GdeltDF[5,2], color = 'light-blue', href = GdeltDF[5,3], width = 12)
+```
+
+
+Map of Top Events  
+=====================================  
+
+```{r}
+
+aggregated_data <- GdeltDF1 %>%
+  group_by(Actor1Geo_Lat, Actor1Geo_Long, Actor2Geo_Lat, Actor2Geo_Long, EventRootCode, SOURCEURL) %>%
+  filter(!is.na(Actor2Geo_Lat), !is.na(Actor2Geo_Long)) %>%
+  summarise(TotalMentions = sum(NumMentions),
+            TotalSources = sum(NumSources),
+            TotalArticles = sum(NumArticles),
+            .groups = 'drop')  # Ensure groups are dropped after summarisation
+
+# Calculate a score for each event based on the sum of NumMentions, NumSources, and NumArticles
+aggregated_data$Score <- aggregated_data$TotalMentions + aggregated_data$TotalSources + aggregated_data$TotalArticles
+
+# Sort events based on the score in descending order
+sorted_data <- aggregated_data %>%
+  arrange(desc(Score))
+
+# Display top ten trending events
+top_10_trending <- head(sorted_data, 10)
+
+# Creating a Leaflet map centered around the world
+world_map <- leaflet() %>%
+  addTiles() %>%
+  setView(lng = 0, lat = 30, zoom = 2)  # Adjust the center and zoom level as needed
+
+# Add circle markers for each point
+for (i in 1:nrow(top_10_trending)) {
+  world_map <- addCircleMarkers(world_map,
+                                lng = top_10_trending$Actor2Geo_Long[i],
+                                lat = top_10_trending$Actor2Geo_Lat[i],
+                                color = "red",
+                                radius = 5,
+                                popup = as.character(top_10_trending$SOURCEURL[i]))
+}
+
+# Display the map
+world_map
+
+
+```
+
+
+Map of Tone  
+=====================================  
+```{r}
+
+```
+
