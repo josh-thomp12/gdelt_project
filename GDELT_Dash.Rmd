@@ -1,0 +1,114 @@
+---
+title: "GDELT Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(GDELTtools)
+library(dplyr) 
+library(ggplot2) 
+library(leaflet)
+
+GdeltDF <- readRDS('topTenByMention_WithTitles.rds')
+
+```
+
+Top Articles
+=====================================  
+Column {.sidebar}
+-----------------------------------------------------------------------
+### About 
+
+Navigating the news in today's world is overwhelming with endless articles and sources. This dashboard brings you the latest news from around the world in a straightforward and easily digestible format. Powered by data from the Global Database of Events, Language, and Tone (GDELT), we highlight thte top news stories making headlines each day. Our goal is to provide users with a quick and efficient way to stay informed about the most important events and developments happening globally.
+
+The Global Database of Events, Language, & Tone (GDELT) monitors the world's news media from nearly every corner of every country
+in print, broadcast, and web formats, in over 100 languages,
+every moment of every day.
+
+https://www.gdeltproject.org
+
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+
+###
+
+```{r}
+valueBox("Top 10 Articles for 04/24/2024", caption = "Click the boxes below to read more", color = '#007AFF')
+```
+
+###
+
+```{r}
+valueBox(GdeltDF[1,1], caption = GdeltDF[1,2], color = '#63B8FF', href = GdeltDF[1,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[2,1], caption = GdeltDF[2,2], color = '#63B8FF', href = GdeltDF[2,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[3,1], caption = GdeltDF[3,2], color = '#63B8FF', href = GdeltDF[3,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[3,1], caption = GdeltDF[3,2], color = '#63B8FF', href = GdeltDF[3,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[4,1], caption = GdeltDF[4,2], color = '#63B8FF', href = GdeltDF[4,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[5,1], caption = GdeltDF[5,2], color = '#63B8FF', href = GdeltDF[5,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[6,1], caption = GdeltDF[6,2], color = '#63B8FF', href = GdeltDF[6,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[7,1], caption = GdeltDF[7,2], color = '#63B8FF', href = GdeltDF[7,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[8,1], caption = GdeltDF[8,2], color = '#63B8FF', href = GdeltDF[8,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[9,1], caption = GdeltDF[9,2], color = '#63B8FF', href = GdeltDF[9,3])
+```
+
+### 
+
+```{r}
+valueBox(GdeltDF[10,1], caption = GdeltDF[10,2], color = '#63B8FF', href = GdeltDF[10,3])
+```
+
+Map of Tone 
+=====================================  
+
+
+
