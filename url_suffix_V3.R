@@ -14,7 +14,7 @@ library(tidyverse)
 get_suffixes_and_countries <- function() {
   # The following url's webpage contains a nice table that we will scrape information
   # about url suffixes and their countries from.
-  url <-'https://worldpopulationreview.com/country-rankings/domain-extensions-by-country'
+  url_for_scraping <-'https://worldpopulationreview.com/country-rankings/domain-extensions-by-country'
   # Scraping the table from the html of the webpage and converting the tibble to
   # a dataframe
   country_suffix_info <- read_html(url_for_scraping) %>% 
@@ -117,7 +117,12 @@ find_usa_match <- function(df) {
                'startribune.com', 'cjonline.com', 'fremonttribune.com',
                'salemnews.com', 'wcnc.com', 'democratandchronicle.com',
                'kabc.com', 'thenorthwestern.com', 'natlawreview.com', 'wesh.com',
-               '987jack.com', 'sciencedaily.com', 'clickondetroit.com', 'latimes.com')
+               '987jack.com', 'sciencedaily.com', 'clickondetroit.com', 'latimes.com',
+               'ktar.com', 'usni.com', 'wvua23.com', 'weartv.com', 'baltimoresun.com',
+               'rep-am.com', 'krdo.com', 'kezj.com', 'abc17news', 'al.com', 'carsonnow.org',
+               'local3news.com', 'idahopress.com', 'mynewsla.com', 'abc7ny.com',
+               'kitv.com', 'outdoorlife.com', 'fox13memphis.com', 'foxweather.com',
+               'readingeagle.com', 'orlandosentinel.com', 'omaha.com')
   # Setting the number of iteration to the number of rows in the modifiable df
   iterations <- nrow(df)
   # Looping through each row of the modifiable df
@@ -195,15 +200,7 @@ get_wavg_tone <- function(df){
 }
 
 # Getting the date from user input
-date <- readline(
-  prompt = "Enter the date you wish to know about in yyyy-mm-dd format: "
-)
+date <- '2024-04-24'
 
-test <- find_country_associated_with_url(date)
-test
-subset(test,is.na(test$COUNTRY_MATCH))
-subset(test, test$COUNTRY_MATCH == 'USA')
-
-test2 <- get_wavg_tone(test)
-test2
-subset(test2, test2$COUNTRY_MATCH == 'USA')
+countries_with_urls <- find_country_associated_with_url(date)
+wavgtone <- get_wavg_tone(test)

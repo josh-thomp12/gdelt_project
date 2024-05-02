@@ -166,14 +166,20 @@ get_titles <- function(date) {
   return(gdelt_sorted_mentions_top10_titles)
 }
 
+# Function to precompute and save data
+precompute_data <- function(date, output_file) {
+  # Running the program on the input date.
+  titles <- get_titles(date)
+  titles <- titles[ , c('WEBPAGE_TITLES', 'OUTLET_TITLES', 'SOURCEURL')]
+  # Save sorted data to file
+  saveRDS(titles, file = output_file)
+  # Return top ten trending events
+  return(titles)
+}
 
 ### Compilation and Execution ###
 # Gathering the date from user input
-date <- readline(
-  prompt = "Enter the date you wish to know about in yyyy-mm-dd format: "
-)
+date <- '2024-04-24'
 
 # Running the program on the input date
-test <- get_titles(date)
-# Printing the result to the console
-test
+precomputed_data <- precompute_data(date, 'topTenByMention_WithTitles.rds')
