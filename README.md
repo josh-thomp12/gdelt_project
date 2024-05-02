@@ -1,5 +1,5 @@
 # gdelt_project
-This project is for the data seminar 2024 class. Our goal is to create an interactive dashboard using data collected from the gdelt website.
+This project is for the data capstone Spring 2024 class. Our goal is to create an interactive dashboard using data collected from the gdelt website, https://www.gdeltproject.org/. The Gdelt Project collects news articles from around the globe daily. By itself, the data is extremely messy and hard to understand, so we decided to try to give the data some applicable meaning through the use of tables and graphics.
 
 The 'url_suffix_V3.R' file takes a single date as input and uses the suffixes of the URLs to determine where the article originated from. In this file, the weighted average tone over all events for that day is found per country.
 
