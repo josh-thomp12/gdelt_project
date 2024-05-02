@@ -37,3 +37,6 @@ I used sf and ggplot2 to create the map of Avg Tone for the top event by country
 
 A simple join connects the average tone for each country with the shape files. The mapping code is found in the final chunk.
 # mappingtopTen.Rmd explanation end
+
+# GDELT_Dash.Rmd 
+Must run the Capstone_Final.R code first to get the file used in the dashboard -- this file is too large to uploadn 
