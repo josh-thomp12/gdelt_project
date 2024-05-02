@@ -203,4 +203,4 @@ get_wavg_tone <- function(df){
 date <- '2024-04-24'
 
 countries_with_urls <- find_country_associated_with_url(date)
-wavgtone <- get_wavg_tone(test)
+wavgtone <- get_wavg_tone(countries_with_urls)
