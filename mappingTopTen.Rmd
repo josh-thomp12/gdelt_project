@@ -1,0 +1,109 @@
+---
+title: "MappingTopTen"
+author: "Tim Gabriel"
+date: "2024-04-28"
+output: html_document
+---
+
+```{r, echo=FALSE}
+library(GDELTtools)
+library(dplyr)
+library(urltools)
+library(readxl)
+library(tidyr)
+library(rvest)
+```
+
+#Dataset for one date
+```{r}
+apr29 <- GetGDELT("2024-04-29")
+apr29
+```
+
+# group_by to separate into events
+# sum mentions, keep lists of URLs with tones
+# arrange by number of mentions
+# keep top ten events
+```{r}
+apr29 %>%
+  group_by(EventCode,Actor1Geo_Lat,Actor1Geo_Long,ActionGeo_Lat,ActionGeo_Long) %>%
+  summarize(mentions=sum(NumMentions), tone = list(AvgTone), URLs = list(SOURCEURL), .groups="drop") %>%
+  arrange(desc(mentions)) %>%
+  select(EventCode,URLs,tone) %>%
+  slice_head(n=10) %>%
+  mutate(index=c(1,2,3,4,5,6,7,8,9,10)) %>%
+  select(index, URLs, tone) %>%
+  unnest(c(URLs,tone)) %>%
+  mutate(domain = (domain(URLs))) -> topTen
+topTen
+```
+
+# Join with wikipedia list of country web domains
+```{r}
+countryDomains <- read_excel("countryDomains.xlsx")
+topTen %>% 
+  mutate(suffix = sub(".+\\.", ".", domain)) %>%
+  left_join(countryDomains, by = c("suffix"="domain")) -> df2
+df2
+```
+# Removing NAs makes list much shorter
+
+```{r}
+df2 %>% na.omit() -> urlList
+urlList
+```
+# Pick out event with most mentions
+# group_by country
+# keep list of URLs and find average tone in each country
+# sort by average tone
+```{r}
+urlList %>% 
+  filter(index==1) %>%
+  group_by(country) %>%
+  summarize(URLs = list(URLs), meanTone=mean(tone) , .groups="drop") %>%
+  arrange(desc(meanTone)) -> df3
+df3
+```
+# To investigate URLs choose max and min tone
+# Show URLs
+```{r}
+df3 %>%
+  slice(n()) %>%
+  bind_rows(df3 %>% slice(1)) %>%
+  unnest(URLs) -> df4
+df4
+```
+# Function to pull webpage html title
+# apply this function to URLs
+```{r}
+get_html_title <- function(url) {
+  webpage <- read_html(url)
+  title <- html_text(html_node(webpage, "title"))
+  return(title)
+}
+df4 %>%
+  mutate(title = lapply(URLs, get_html_title)) %>%
+  unnest(title) %>%
+  select(country, title)
+```
+# Map tones by country
+```{r fig.width=10}
+library(sf)
+library(ggplot2)
+worldShapeFiles <- read_sf("TM_WORLD_BORDERS_SIMPL-0.3.shp")
+
+#Manual editing may be necessary for some country names
+#df3 %>%
+#  mutate(country = replace(country, 1, "Iran (Islamic Republic of)")) %>%
+#  mutate(country = replace(country, 2, "China")) %>%
+#  mutate(country = replace(country, 4, "United States")) -> df3
+
+worldShapeFiles %>%
+  left_join(df3, by = c("NAME"="country")) -> df5
+
+ggplot(df5) +
+  geom_sf(aes(fill=meanTone)) +
+  scale_fill_distiller(palette="Reds",direction=1, name="",na.value="gray") +
+  labs(title="Average Tone by Country")+
+  theme_void()
+```
